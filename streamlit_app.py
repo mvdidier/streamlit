@@ -1,8 +1,5 @@
 import streamlit as st
 
-st.markdown("# Main page 🎈")
-st.sidebar.markdown("# Main page 🎈")
-   
 st.button("Click me")
 st.download_button("Download file", data)
 st.link_button("Go to gallery", url)
