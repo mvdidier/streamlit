@@ -11,6 +11,10 @@ o **desarrollar** un componente basado en tus necesidades y restricciones espec�
 st.header("Paso 1: Definir Requisitos")
 nombre = st.text_input("¿Cual es el nombre del componente?")
 descripcionfuncional = st.text_input("Proporciona una descripcion funcional de este componente")
+requerimientotecnicos = st.text_input("Proporciona los requerimientos técnicos")
+
+disenadortecnico = st.text_input("¿Cual es el nombre del diseñador técnico?")
+
 complejidad = st.radio("¿Qué tan compleja es la funcionalidad?", ("Baja", "Media", "Alta"))
 urgencia = st.radio("¿Qué tan urgente es la necesidad del componente?", ("Baja", "Media", "Alta"))
 
