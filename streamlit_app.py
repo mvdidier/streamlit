@@ -1,10 +1,10 @@
 import streamlit as st
 
 # Título e Introducción
-st.title("Asistente de Toma de Decisiones para Componentes Web")
+st.title("Asistente de Toma de Decisiones para Componentes")
 st.markdown("""
 Bienvenido al asistente de toma de decisiones. Esta herramienta te ayudará a determinar si debes **comprar**, **reutilizar** 
-o **desarrollar** un componente web basado en tus necesidades y restricciones específicas.
+o **desarrollar** un componente basado en tus necesidades y restricciones específicas.
 """)
 
 # Paso 1: Definir los Requisitos del Componente
