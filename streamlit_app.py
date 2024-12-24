@@ -59,26 +59,56 @@ o **desarrollar** un componente basado en tus necesidades y restricciones espec�
 opcion = st.sidebar.selectbox("Acción", ["Registrar Componente", "Ver Componentes"])
 
 if opcion == "Registrar Componente":
-    # Sección 1: Información General
-    st.header("Sección 1: Información General")
+    # Control de secciones
+    if "seccion" not in st.session_state:
+        st.session_state.seccion = 1
 
-    nombre = st.text_input("¿Cuál es el nombre del componente?")
-    proyecto = st.text_input("¿Cuál es el nombre del proyecto?")
-    impacto = st.radio("¿Cuál es el impacto en el proyecto?", ("Baja", "Media", "Alta"))
+    # Sección 1: Información General
+    if st.session_state.seccion == 1:
+        st.header("Sección 1: Información General")
+
+        nombre = st.text_input("¿Cuál es el nombre del componente?")
+        proyecto = st.text_input("¿Cuál es el nombre del proyecto?")
+        impacto = st.radio("¿Cuál es el impacto en el proyecto?", ("Baja", "Media", "Alta"))
+
+        if st.button("Ir a Sección 2"):
+            if nombre and proyecto:
+                st.session_state.nombre = nombre
+                st.session_state.proyecto = proyecto
+                st.session_state.impacto = impacto
+                st.session_state.seccion = 2
+            else:
+                st.error("Por favor, completa todos los campos de la Sección 1.")
 
     # Sección 2: Detalles Técnicos
-    st.header("Sección 2: Detalles Técnicos")
+    if st.session_state.seccion == 2:
+        st.header("Sección 2: Detalles Técnicos")
 
-    descripcion_funcional = st.text_input("Proporciona una descripción funcional de este componente")
-    requerimientos_tecnicos = st.text_input("Proporciona los requerimientos técnicos")
-    disenador_tecnico = st.text_input("¿Cuál es el nombre del diseñador técnico?")
+        descripcion_funcional = st.text_input("Proporciona una descripción funcional de este componente")
+        requerimientos_tecnicos = st.text_input("Proporciona los requerimientos técnicos")
+        disenador_tecnico = st.text_input("¿Cuál es el nombre del diseñador técnico?")
 
-    if st.button("Guardar Componente"):
-        if nombre and proyecto and descripcion_funcional and requerimientos_tecnicos and disenador_tecnico:
-            insertar_componente(nombre, proyecto, impacto, descripcion_funcional, requerimientos_tecnicos, disenador_tecnico)
-            st.success("Componente registrado exitosamente.")
-        else:
-            st.error("Por favor, completa todos los campos.")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            if st.button("Regresar a Sección 1"):
+                st.session_state.seccion = 1
+
+        with col2:
+            if st.button("Guardar Componente"):
+                if descripcion_funcional and requerimientos_tecnicos and disenador_tecnico:
+                    insertar_componente(
+                        st.session_state.nombre,
+                        st.session_state.proyecto,
+                        st.session_state.impacto,
+                        descripcion_funcional,
+                        requerimientos_tecnicos,
+                        disenador_tecnico
+                    )
+                    st.success("Componente registrado exitosamente.")
+                    st.session_state.seccion = 1
+                else:
+                    st.error("Por favor, completa todos los campos de la Sección 2.")
 
 elif opcion == "Ver Componentes":
     # Mostrar y gestionar componentes
