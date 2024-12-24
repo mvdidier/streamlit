@@ -18,27 +18,17 @@ requerimientotecnicos = st.text_input("Proporciona los requerimientos técnicos"
 
 disenadortecnico = st.text_input("¿Cual es el nombre del diseñador técnico?")
 
-# Paso 2: Presupuesto y Recursos
-st.header("Paso 2: Evaluar Presupuesto y Recursos")
-presupuesto = st.number_input("¿Cuál es tu presupuesto para el componente? ($)", min_value=0)
-expertise_equipo = st.radio("¿Tu equipo tiene experiencia para desarrollar el componente?", ("Sí", "No"))
-tiempo_disponible = st.slider("¿Cuánto tiempo tienes disponible para desarrollar o integrar el componente? (semanas)", 1, 52, 4)
-
-# Paso 3: Explorar Alternativas
-st.header("Paso 3: Evaluar Alternativas")
-disponibilidad_mercado = st.radio("¿Existe un componente similar disponible en el mercado?", ("Sí", "No"))
-reusabilidad = st.radio("¿Puedes reutilizar un componente existente de otro proyecto?", ("Sí", "No"))
 
 # Lógica de Decisión
-if st.button("Obtener Recomendación"):
-    if complejidad == "Baja" and disponibilidad_mercado == "Sí":
-        st.success("Recomendación: Compra un componente preconstruido para ahorrar tiempo y esfuerzo.")
-    elif reusabilidad == "Sí" and expertise_equipo == "Sí":
-        st.success("Recomendación: Reutiliza un componente existente de tus proyectos.")
-    elif complejidad == "Alta" and expertise_equipo == "No" and presupuesto > 5000:
-        st.success("Recomendación: Considera contratar a un tercero para desarrollar el componente.")
-    else:
-        st.warning("Recomendación: Desarrolla el componente internamente si tu equipo tiene experiencia y suficiente tiempo.")
+#if st.button("Obtener Recomendación"):
+#    if complejidad == "Baja" and disponibilidad_mercado == "Sí":
+#        st.success("Recomendación: Compra un componente preconstruido para ahorrar tiempo y esfuerzo.")
+#    elif reusabilidad == "Sí" and expertise_equipo == "Sí":
+#        st.success("Recomendación: Reutiliza un componente existente de tus proyectos.")
+#    elif complejidad == "Alta" and expertise_equipo == "No" and presupuesto > 5000:
+#        st.success("Recomendación: Considera contratar a un tercero para desarrollar el componente.")
+#    else:
+#        st.warning("Recomendación: Desarrolla el componente internamente si tu equipo tiene experiencia y suficiente tiempo.")
 
 # Notas Opcionales
 st.header("Notas Adicionales")
