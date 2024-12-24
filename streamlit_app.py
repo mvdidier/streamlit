@@ -55,27 +55,36 @@ Bienvenido al asistente de toma de decisiones. Esta herramienta te ayudará a de
 o **desarrollar** un componente basado en tus necesidades y restricciones específicas.
 """)
 
+# Inicialización del estado
+if "seccion" not in st.session_state:
+    st.session_state.seccion = 1
+if "nombre" not in st.session_state:
+    st.session_state.nombre = ""
+if "proyecto" not in st.session_state:
+    st.session_state.proyecto = ""
+if "impacto" not in st.session_state:
+    st.session_state.impacto = "Baja"
+if "descripcion_funcional" not in st.session_state:
+    st.session_state.descripcion_funcional = ""
+if "requerimientos_tecnicos" not in st.session_state:
+    st.session_state.requerimientos_tecnicos = ""
+if "disenador_tecnico" not in st.session_state:
+    st.session_state.disenador_tecnico = ""
+
 # Menú de opciones
 opcion = st.sidebar.selectbox("Acción", ["Registrar Componente", "Ver Componentes"])
 
 if opcion == "Registrar Componente":
-    # Control de secciones
-    if "seccion" not in st.session_state:
-        st.session_state.seccion = 1
-
     # Sección 1: Información General
     if st.session_state.seccion == 1:
         st.header("Sección 1: Información General")
 
-        nombre = st.text_input("¿Cuál es el nombre del componente?")
-        proyecto = st.text_input("¿Cuál es el nombre del proyecto?")
-        impacto = st.radio("¿Cuál es el impacto en el proyecto?", ("Baja", "Media", "Alta"))
+        st.session_state.nombre = st.text_input("¿Cuál es el nombre del componente?", value=st.session_state.nombre)
+        st.session_state.proyecto = st.text_input("¿Cuál es el nombre del proyecto?", value=st.session_state.proyecto)
+        st.session_state.impacto = st.radio("¿Cuál es el impacto en el proyecto?", ("Baja", "Media", "Alta"), index=["Baja", "Media", "Alta"].index(st.session_state.impacto))
 
         if st.button("Ir a Sección 2"):
-            if nombre and proyecto:
-                st.session_state.nombre = nombre
-                st.session_state.proyecto = proyecto
-                st.session_state.impacto = impacto
+            if st.session_state.nombre and st.session_state.proyecto:
                 st.session_state.seccion = 2
             else:
                 st.error("Por favor, completa todos los campos de la Sección 1.")
@@ -84,9 +93,9 @@ if opcion == "Registrar Componente":
     if st.session_state.seccion == 2:
         st.header("Sección 2: Detalles Técnicos")
 
-        descripcion_funcional = st.text_input("Proporciona una descripción funcional de este componente")
-        requerimientos_tecnicos = st.text_input("Proporciona los requerimientos técnicos")
-        disenador_tecnico = st.text_input("¿Cuál es el nombre del diseñador técnico?")
+        st.session_state.descripcion_funcional = st.text_input("Proporciona una descripción funcional de este componente", value=st.session_state.descripcion_funcional)
+        st.session_state.requerimientos_tecnicos = st.text_input("Proporciona los requerimientos técnicos", value=st.session_state.requerimientos_tecnicos)
+        st.session_state.disenador_tecnico = st.text_input("¿Cuál es el nombre del diseñador técnico?", value=st.session_state.disenador_tecnico)
 
         col1, col2 = st.columns(2)
 
@@ -96,17 +105,23 @@ if opcion == "Registrar Componente":
 
         with col2:
             if st.button("Guardar Componente"):
-                if descripcion_funcional and requerimientos_tecnicos and disenador_tecnico:
+                if st.session_state.descripcion_funcional and st.session_state.requerimientos_tecnicos and st.session_state.disenador_tecnico:
                     insertar_componente(
                         st.session_state.nombre,
                         st.session_state.proyecto,
                         st.session_state.impacto,
-                        descripcion_funcional,
-                        requerimientos_tecnicos,
-                        disenador_tecnico
+                        st.session_state.descripcion_funcional,
+                        st.session_state.requerimientos_tecnicos,
+                        st.session_state.disenador_tecnico
                     )
                     st.success("Componente registrado exitosamente.")
                     st.session_state.seccion = 1
+                    st.session_state.nombre = ""
+                    st.session_state.proyecto = ""
+                    st.session_state.impacto = "Baja"
+                    st.session_state.descripcion_funcional = ""
+                    st.session_state.requerimientos_tecnicos = ""
+                    st.session_state.disenador_tecnico = ""
                 else:
                     st.error("Por favor, completa todos los campos de la Sección 2.")
 
