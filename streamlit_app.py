@@ -1,50 +1,40 @@
 import streamlit as st
-from st_aggrid import AgGrid
-from st_aggrid.grid_options_builder import GridOptionsBuilder
-import pandas as pd
 
-# Título de la aplicación
-st.title("Asistente de Toma de Decisiones")
+# Título e Introducción
+st.title("Asistente de Toma de Decisiones para Componentes Web")
+st.markdown("""
+Bienvenido al asistente de toma de decisiones. Esta herramienta te ayudará a determinar si debes **comprar**, **reutilizar** 
+o **desarrollar** un componente web basado en tus necesidades y restricciones específicas.
+""")
 
-# Subtítulo
-st.subheader("Comparar opciones: Comprar, Reutilizar o Desarrollar")
+# Paso 1: Definir los Requisitos del Componente
+st.header("Paso 1: Definir Requisitos")
+funcionalidad = st.text_input("¿Qué funcionalidad necesita el componente?")
+complejidad = st.radio("¿Qué tan compleja es la funcionalidad?", ("Baja", "Media", "Alta"))
+urgencia = st.radio("¿Qué tan urgente es la necesidad del componente?", ("Baja", "Media", "Alta"))
 
-# Datos de ejemplo
-data = {
-    "Criterio": ["Costo", "Tiempo de implementación", "Mantenimiento", "Personalización"],
-    "Comprar": [3, 4, 2, 1],
-    "Reutilizar": [2, 3, 4, 2],
-    "Desarrollar": [4, 2, 3, 5],
-}
-df = pd.DataFrame(data)
+# Paso 2: Presupuesto y Recursos
+st.header("Paso 2: Evaluar Presupuesto y Recursos")
+presupuesto = st.number_input("¿Cuál es tu presupuesto para el componente? ($)", min_value=0)
+expertise_equipo = st.radio("¿Tu equipo tiene experiencia para desarrollar el componente?", ("Sí", "No"))
+tiempo_disponible = st.slider("¿Cuánto tiempo tienes disponible para desarrollar o integrar el componente? (semanas)", 1, 52, 4)
 
-# Configuración de la tabla interactiva
-st.write("### Tabla de comparación")
-gb = GridOptionsBuilder.from_dataframe(df)
-gb.configure_pagination(enabled=True)  # Activar paginación
-gb.configure_default_column(editable=True)  # Permitir edición
-gb.configure_selection(selection_mode="single", use_checkbox=True)  # Selección de filas con checkbox
-grid_options = gb.build()
+# Paso 3: Explorar Alternativas
+st.header("Paso 3: Evaluar Alternativas")
+disponibilidad_mercado = st.radio("¿Existe un componente similar disponible en el mercado?", ("Sí", "No"))
+reusabilidad = st.radio("¿Puedes reutilizar un componente existente de otro proyecto?", ("Sí", "No"))
 
-# Mostrar la tabla
-grid_response = AgGrid(
-    df,
-    gridOptions=grid_options,
-    enable_enterprise_modules=False,
-    height=300,
-    theme="alpine",  # Temas disponibles: 'streamlit', 'light', 'dark', 'alpine'
-)
+# Lógica de Decisión
+if st.button("Obtener Recomendación"):
+    if complejidad == "Baja" and disponibilidad_mercado == "Sí":
+        st.success("Recomendación: Compra un componente preconstruido para ahorrar tiempo y esfuerzo.")
+    elif reusabilidad == "Sí" and expertise_equipo == "Sí":
+        st.success("Recomendación: Reutiliza un componente existente de tus proyectos.")
+    elif complejidad == "Alta" and expertise_equipo == "No" and presupuesto > 5000:
+        st.success("Recomendación: Considera contratar a un tercero para desarrollar el componente.")
+    else:
+        st.warning("Recomendación: Desarrolla el componente internamente si tu equipo tiene experiencia y suficiente tiempo.")
 
-# Capturar la fila seleccionada
-selected_rows = grid_response["selected_rows"]
-if selected_rows:
-    st.write("### Opción seleccionada")
-    st.json(selected_rows)
-
-# Recomendación basada en los datos seleccionados
-if selected_rows:
-    st.write("### Recomendación:")
-    criterio = selected_rows[0]["Criterio"]
-    st.write(f"Según el criterio seleccionado: **{criterio}**, podrías considerar la opción con el puntaje más alto.")
-else:
-    st.write("Selecciona una fila para obtener una recomendación.")
+# Notas Opcionales
+st.header("Notas Adicionales")
+st.text_area("Agrega aquí cualquier nota o consideración adicional.")
