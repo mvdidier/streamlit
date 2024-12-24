@@ -1,3 +1,19 @@
+import os
+import subprocess
+
+# Función para instalar paquetes automáticamente
+def install_package(package):
+    try:
+        __import__(package)
+    except ImportError:
+        subprocess.check_call(["pip", "install", package])
+
+# Instalar las librerías necesarias
+install_package("streamlit")
+install_package("streamlit-aggrid")
+install_package("pandas")
+
+# Resto del código
 import streamlit as st
 import sqlite3
 from st_aggrid import AgGrid, GridOptionsBuilder
