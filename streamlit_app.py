@@ -1,26 +1,6 @@
-import subprocess
-import sys
-
-# Función para instalar librerías automáticamente
-def install_and_import(package):
-    try:
-        __import__(package)
-    except ImportError:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-        __import__(package)
-
-# Instalación de las librerías requeridas
-install_and_import("streamlit")
-install_and_import("streamlit-aggrid")
-install_and_import("pandas")
-
-# Ahora importa las librerías
 import streamlit as st
-from st_aggrid import AgGrid, GridOptionsBuilder
-import pandas as pd
 import sqlite3
-
-# Código de la aplicación (secciones 1, 2 y 3)
+import pandas as pd
 
 # Configuración de la base de datos
 DB_FILE = "componentes.db"
@@ -37,33 +17,12 @@ def init_db():
             disenador_tecnico TEXT
         )''')
 
-# Función para insertar un registro
-def insertar_componente(nombre, proyecto, impacto, descripcion_funcional, requerimientos_tecnicos, disenador_tecnico):
-    with sqlite3.connect(DB_FILE) as conn:
-        conn.execute('''INSERT INTO componentes (
-            nombre, proyecto, impacto, descripcion_funcional, requerimientos_tecnicos, disenador_tecnico
-        ) VALUES (?, ?, ?, ?, ?, ?)''', (nombre, proyecto, impacto, descripcion_funcional, requerimientos_tecnicos, disenador_tecnico))
-
 # Inicialización de la base de datos
 init_db()
 
 # Inicialización del estado
 if "seccion" not in st.session_state:
     st.session_state.seccion = 1
-if "nombre" not in st.session_state:
-    st.session_state.nombre = ""
-if "proyecto" not in st.session_state:
-    st.session_state.proyecto = ""
-if "impacto" not in st.session_state:
-    st.session_state.impacto = "Baja"
-if "descripcion_funcional" not in st.session_state:
-    st.session_state.descripcion_funcional = ""
-if "requerimientos_tecnicos" not in st.session_state:
-    st.session_state.requerimientos_tecnicos = ""
-if "disenador_tecnico" not in st.session_state:
-    st.session_state.disenador_tecnico = ""
-
-# Datos iniciales para la sección 3
 if "grid_data" not in st.session_state:
     st.session_state.grid_data = pd.DataFrame({
         "Opciones de Solución": ["Crear", "Reusar", "Comprar"],
@@ -95,12 +54,12 @@ o **desarrollar** un componente basado en tus necesidades y restricciones espec�
 if st.session_state.seccion == 1:
     st.header("Sección 1: Información General")
 
-    st.session_state.nombre = st.text_input("¿Cuál es el nombre del componente?", value=st.session_state.nombre)
-    st.session_state.proyecto = st.text_input("¿Cuál es el nombre del proyecto?", value=st.session_state.proyecto)
-    st.session_state.impacto = st.radio("¿Cuál es el impacto en el proyecto?", ("Baja", "Media", "Alta"), index=["Baja", "Media", "Alta"].index(st.session_state.impacto))
+    nombre = st.text_input("¿Cuál es el nombre del componente?")
+    proyecto = st.text_input("¿Cuál es el nombre del proyecto?")
+    impacto = st.radio("¿Cuál es el impacto en el proyecto?", ("Baja", "Media", "Alta"))
 
     if st.button("Ir a Sección 2"):
-        if st.session_state.nombre and st.session_state.proyecto:
+        if nombre and proyecto:
             st.session_state.seccion = 2
         else:
             st.error("Por favor, completa todos los campos de la Sección 1.")
@@ -108,9 +67,9 @@ if st.session_state.seccion == 1:
 elif st.session_state.seccion == 2:
     st.header("Sección 2: Detalles Técnicos")
 
-    st.session_state.descripcion_funcional = st.text_input("Proporciona una descripción funcional de este componente", value=st.session_state.descripcion_funcional)
-    st.session_state.requerimientos_tecnicos = st.text_input("Proporciona los requerimientos técnicos", value=st.session_state.requerimientos_tecnicos)
-    st.session_state.disenador_tecnico = st.text_input("¿Cuál es el nombre del diseñador técnico?", value=st.session_state.disenador_tecnico)
+    descripcion_funcional = st.text_input("Proporciona una descripción funcional de este componente")
+    requerimientos_tecnicos = st.text_input("Proporciona los requerimientos técnicos")
+    disenador_tecnico = st.text_input("¿Cuál es el nombre del diseñador técnico?")
 
     col1, col2 = st.columns(2)
 
@@ -120,7 +79,7 @@ elif st.session_state.seccion == 2:
 
     with col2:
         if st.button("Ir a Sección 3"):
-            if st.session_state.descripcion_funcional and st.session_state.requerimientos_tecnicos and st.session_state.disenador_tecnico:
+            if descripcion_funcional and requerimientos_tecnicos and disenador_tecnico:
                 st.session_state.seccion = 3
             else:
                 st.error("Por favor, completa todos los campos de la Sección 2.")
@@ -132,26 +91,13 @@ elif st.session_state.seccion == 3:
     En esta sección puedes evaluar las opciones de solución para determinar la mejor estrategia basada en criterios técnicos, económicos, operacionales y de riesgos.
     """)
 
-    # Configuración del grid editable
-    gb = GridOptionsBuilder.from_dataframe(st.session_state.grid_data)
-    gb.configure_default_column(editable=True, resizable=True)
-    gb.configure_grid_options(domLayout='autoHeight')
-    grid_options = gb.build()
+    # Mostrar los datos como una tabla editable
+    st.write("Tabla Editable")
+    edited_df = st.experimental_data_editor(st.session_state.grid_data, num_rows="dynamic")
 
-    # Mostrar el grid editable
-    response = AgGrid(st.session_state.grid_data, gridOptions=grid_options, editable=True, fit_columns_on_grid_load=True, height=300)
-
-    # Actualizar los datos editados en el estado
-    st.session_state.grid_data = pd.DataFrame(response['data'])
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        if st.button("Regresar a Sección 2"):
-            st.session_state.seccion = 2
-
-    with col2:
-        if st.button("Guardar Evaluación"):
-            st.success("Evaluación guardada correctamente.")
-            st.write("Datos actualizados:")
-            st.write(st.session_state.grid_data)
+    # Guardar los cambios
+    if st.button("Guardar Evaluación"):
+        st.session_state.grid_data = edited_df
+        st.success("Evaluación guardada correctamente.")
+        st.write("Datos actualizados:")
+        st.write(st.session_state.grid_data)
