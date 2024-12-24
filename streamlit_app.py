@@ -59,12 +59,16 @@ o **desarrollar** un componente basado en tus necesidades y restricciones espec�
 opcion = st.sidebar.selectbox("Acción", ["Registrar Componente", "Ver Componentes"])
 
 if opcion == "Registrar Componente":
-    # Formulario de registro
-    st.header("Registrar Componente")
+    # Sección 1: Información General
+    st.header("Sección 1: Información General")
 
     nombre = st.text_input("¿Cuál es el nombre del componente?")
     proyecto = st.text_input("¿Cuál es el nombre del proyecto?")
     impacto = st.radio("¿Cuál es el impacto en el proyecto?", ("Baja", "Media", "Alta"))
+
+    # Sección 2: Detalles Técnicos
+    st.header("Sección 2: Detalles Técnicos")
+
     descripcion_funcional = st.text_input("Proporciona una descripción funcional de este componente")
     requerimientos_tecnicos = st.text_input("Proporciona los requerimientos técnicos")
     disenador_tecnico = st.text_input("¿Cuál es el nombre del diseñador técnico?")
