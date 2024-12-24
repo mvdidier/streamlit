@@ -1,23 +1,26 @@
-import os
 import subprocess
+import sys
 
-# Función para instalar paquetes automáticamente
-def install_package(package):
+# Función para instalar librerías automáticamente
+def install_and_import(package):
     try:
         __import__(package)
     except ImportError:
-        subprocess.check_call(["pip", "install", package])
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+        __import__(package)
 
-# Instalar las librerías necesarias
-install_package("streamlit")
-install_package("streamlit-aggrid")
-install_package("pandas")
+# Instalación de las librerías requeridas
+install_and_import("streamlit")
+install_and_import("streamlit-aggrid")
+install_and_import("pandas")
 
-# Resto del código
+# Ahora importa las librerías
 import streamlit as st
-import sqlite3
 from st_aggrid import AgGrid, GridOptionsBuilder
 import pandas as pd
+import sqlite3
+
+# Código de la aplicación (secciones 1, 2 y 3)
 
 # Configuración de la base de datos
 DB_FILE = "componentes.db"
