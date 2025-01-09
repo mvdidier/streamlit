@@ -68,7 +68,8 @@ with st.form("form_proyecto"):
     # Lista dinámica de Requerimientos Técnicos
     st.subheader("Requerimientos Técnicos")
     new_req = st.text_input("Agregar Requerimiento Técnico", key="new_req")
-    if st.button("Agregar Requerimiento"):
+    add_req = st.form_submit_button("Agregar Requerimiento")
+    if add_req:
         if new_req:
             st.session_state["req_tec_temp"].append(new_req)
             st.success("Requerimiento agregado.")
@@ -79,13 +80,13 @@ with st.form("form_proyecto"):
         st.write(f"- {req}")
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("Editar", key=f"edit_req_{i}"):
-                new_value = st.text_input("Editar Requerimiento", req, key=f"edit_input_{i}")
-                if st.button("Guardar Cambios", key=f"save_req_{i}"):
+            if st.button(f"Editar {i}", key=f"edit_req_{i}"):
+                new_value = st.text_input(f"Editar Requerimiento {i}", req, key=f"edit_input_{i}")
+                if st.button(f"Guardar Cambios {i}", key=f"save_req_{i}"):
                     st.session_state["req_tec_temp"][i] = new_value
                     st.success("Requerimiento actualizado.")
         with col2:
-            if st.button("Eliminar", key=f"delete_req_{i}"):
+            if st.button(f"Eliminar {i}", key=f"delete_req_{i}"):
                 st.session_state["req_tec_temp"].pop(i)
                 st.success("Requerimiento eliminado.")
                 break
