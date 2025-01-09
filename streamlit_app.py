@@ -1,103 +1,134 @@
 import streamlit as st
-import sqlite3
 import pandas as pd
+import datetime
+import uuid
 
-# Configuración de la base de datos
-DB_FILE = "componentes.db"
+# Función para inicializar datos en sesión
+if "data" not in st.session_state:
+    st.session_state["data"] = []
 
-def init_db():
-    with sqlite3.connect(DB_FILE) as conn:
-        conn.execute('''CREATE TABLE IF NOT EXISTS componentes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT,
-            proyecto TEXT,
-            impacto TEXT,
-            descripcion_funcional TEXT,
-            requerimientos_tecnicos TEXT,
-            disenador_tecnico TEXT
-        )''')
+if "criteria" not in st.session_state:
+    st.session_state["criteria"] = []
 
-# Inicialización de la base de datos
-init_db()
+if "signatures" not in st.session_state:
+    st.session_state["signatures"] = []
 
-# Inicialización del estado
-if "seccion" not in st.session_state:
-    st.session_state.seccion = 1
-if "grid_data" not in st.session_state:
-    st.session_state.grid_data = pd.DataFrame({
-        "Opciones de Solución": ["Crear", "Reusar", "Comprar"],
-        "Descripción": ["Cómo se crearía el componente.", 
-                        "Opciones de componentes existentes que se podrían adaptar.", 
-                        "Opciones de componentes disponibles comercialmente."],
-        "Viabilidad Técnica": ["¿El equipo tiene la capacidad técnica para desarrollarlo?", 
-                               "¿Los componentes existentes se pueden integrar fácilmente?", 
-                               "¿Los componentes existentes se pueden integrar fácilmente?"],
-        "Viabilidad Económica": ["Costos por desarrollo propio (ROI).", 
-                                 "Costos de reusar adaptando (ROI).", 
-                                 "Costos de compra y tipo de licencia (ROI)."],
-        "Viabilidad Operacional": ["Impacto en la operación actual del sistema.", 
-                                   "Impacto en la operación actual del sistema.", 
-                                   "Impacto en la operación actual del sistema."],
-        "Riesgos y Mitigaciones": ["Análisis de riesgos y mitigaciones.", 
-                                   "Análisis de riesgos y mitigaciones.", 
-                                   "Análisis de riesgos y mitigaciones."]
-    })
+# Función para agregar registro
+def add_record():
+    record = {
+        "Folio": str(uuid.uuid4())[:8],
+        "Impacto en el Proyecto": impacto,
+        "Fecha": fecha,
+        "ID Proyecto": id_proyecto,
+        "Proyecto": proyecto,
+        "Diseñador Técnico": tecnico,
+        "Nombre del Componente": componente,
+        "Descripción Funcional": descripcion,
+        "Requerimientos Técnicos": req_tec.split(","),
+        "Criterios de Decisión": criteria.split(","),
+        "Alternativa Seleccionada": alternativa,
+        "Justificación": justificacion,
+        "Firmas de Conformidad": [tuple(firma.split(",")) for firma in firmas.split("\n") if firma]
+    }
+    st.session_state["data"].append(record)
 
-# Título e Introducción
-st.title("Asistente de Toma de Decisiones para Componentes")
-st.markdown("""
-Bienvenido al asistente de toma de decisiones. Esta herramienta te ayudará a determinar si debes **comprar**, **reutilizar** 
-o **desarrollar** un componente basado en tus necesidades y restricciones específicas.
-""")
+# Función para editar registro
+def edit_record(index):
+    st.session_state["data"][index] = {
+        "Folio": st.session_state["data"][index]["Folio"],
+        "Impacto en el Proyecto": impacto,
+        "Fecha": fecha,
+        "ID Proyecto": id_proyecto,
+        "Proyecto": proyecto,
+        "Diseñador Técnico": tecnico,
+        "Nombre del Componente": componente,
+        "Descripción Funcional": descripcion,
+        "Requerimientos Técnicos": req_tec.split(","),
+        "Criterios de Decisión": criteria.split(","),
+        "Alternativa Seleccionada": alternativa,
+        "Justificación": justificacion,
+        "Firmas de Conformidad": [tuple(firma.split(",")) for firma in firmas.split("\n") if firma]
+    }
 
-# Control de secciones
-if st.session_state.seccion == 1:
-    st.header("Sección 1: Información General")
+# Función para eliminar registro
+def delete_record(index):
+    st.session_state["data"].pop(index)
 
-    nombre = st.text_input("¿Cuál es el nombre del componente?")
-    proyecto = st.text_input("¿Cuál es el nombre del proyecto?")
-    impacto = st.radio("¿Cuál es el impacto en el proyecto?", ("Baja", "Media", "Alta"))
+# Encabezado de la aplicación
+st.title("Gestión de Proyectos")
 
-    if st.button("Ir a Sección 2"):
-        if nombre and proyecto:
-            st.session_state.seccion = 2
-        else:
-            st.error("Por favor, completa todos los campos de la Sección 1.")
+# Formulario de entrada
+with st.form("Formulario de Proyecto"):
+    impacto = st.selectbox("Impacto en el Proyecto", ["Alto", "Medio", "Bajo"], key="impacto")
+    fecha = st.date_input("Fecha", datetime.date.today(), key="fecha")
+    id_proyecto = st.text_input("ID Proyecto", key="id_proyecto")
+    proyecto = st.text_input("Proyecto", key="proyecto")
+    tecnico = st.text_input("Diseñador Técnico", key="tecnico")
+    componente = st.text_input("Nombre del Componente", key="componente")
+    descripcion = st.text_area("Descripción Funcional", key="descripcion")
 
-elif st.session_state.seccion == 2:
-    st.header("Sección 2: Detalles Técnicos")
+    # Tabla dinámica de Requerimientos Técnicos
+    st.subheader("Requerimientos Técnicos")
+    req_tec = st.text_area("Ingrese los requerimientos separados por coma", key="req_tec")
 
-    descripcion_funcional = st.text_input("Proporciona una descripción funcional de este componente")
-    requerimientos_tecnicos = st.text_input("Proporciona los requerimientos técnicos")
-    disenador_tecnico = st.text_input("¿Cuál es el nombre del diseñador técnico?")
+    # Criterios de Decisión
+    st.subheader("Criterios de Decisión")
+    criteria = st.text_area("Ingrese los criterios separados por coma", key="criteria")
 
-    col1, col2 = st.columns(2)
+    alternativa = st.text_input("Alternativa seleccionada", key="alternativa")
+    justificacion = st.text_area("Justificación", key="justificacion")
 
-    with col1:
-        if st.button("Regresar a Sección 1"):
-            st.session_state.seccion = 1
+    # Firmas de Conformidad
+    st.subheader("Firmas de Conformidad")
+    firmas = st.text_area("Ingrese los firmantes en formato 'Nombre,Puesto' separados por línea", key="firmas")
 
-    with col2:
-        if st.button("Ir a Sección 3"):
-            if descripcion_funcional and requerimientos_tecnicos and disenador_tecnico:
-                st.session_state.seccion = 3
-            else:
-                st.error("Por favor, completa todos los campos de la Sección 2.")
+    submit = st.form_submit_button("Guardar Registro")
 
-elif st.session_state.seccion == 3:
-    st.header("Sección 3: Evaluación de Opciones")
+if submit:
+    add_record()
+    st.success("Registro guardado exitosamente")
 
-    st.markdown("""
-    En esta sección puedes evaluar las opciones de solución para determinar la mejor estrategia basada en criterios técnicos, económicos, operacionales y de riesgos.
-    """)
+# Mostrar tabla de registros
+st.subheader("Registros Guardados")
+if st.session_state["data"]:
+    for i, record in enumerate(st.session_state["data"]):
+        st.write(f"**Folio**: {record['Folio']}")
+        st.write(f"**Impacto en el Proyecto**: {record['Impacto en el Proyecto']}")
+        st.write(f"**Fecha**: {record['Fecha']}")
+        st.write(f"**ID Proyecto**: {record['ID Proyecto']}")
+        st.write(f"**Proyecto**: {record['Proyecto']}")
+        st.write(f"**Diseñador Técnico**: {record['Diseñador Técnico']}")
+        st.write(f"**Nombre del Componente**: {record['Nombre del Componente']}")
+        st.write(f"**Descripción Funcional**: {record['Descripción Funcional']}")
+        st.write(f"**Requerimientos Técnicos**: {', '.join(record['Requerimientos Técnicos'])}")
+        st.write(f"**Criterios de Decisión**: {', '.join(record['Criterios de Decisión'])}")
+        st.write(f"**Alternativa Seleccionada**: {record['Alternativa Seleccionada']}")
+        st.write(f"**Justificación**: {record['Justificación']}")
+        st.write("**Firmas de Conformidad**:")
+        for firma in record['Firmas de Conformidad']:
+            st.write(f"Nombre: {firma[0]}, Puesto: {firma[1]}")
 
-    # Mostrar los datos como una tabla editable
-    st.write("Tabla Editable")
-    edited_df = st.experimental_data_editor(st.session_state.grid_data, num_rows="dynamic")
-
-    # Guardar los cambios
-    if st.button("Guardar Evaluación"):
-        st.session_state.grid_data = edited_df
-        st.success("Evaluación guardada correctamente.")
-        st.write("Datos actualizados:")
-        st.write(st.session_state.grid_data)
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Editar", key=f"edit_{i}"):
+                with st.form(f"Editar_{i}"):
+                    impacto = st.selectbox("Impacto en el Proyecto", ["Alto", "Medio", "Bajo"], index=["Alto", "Medio", "Bajo"].index(record['Impacto en el Proyecto']), key=f"impacto_{i}")
+                    fecha = st.date_input("Fecha", record['Fecha'], key=f"fecha_{i}")
+                    id_proyecto = st.text_input("ID Proyecto", record['ID Proyecto'], key=f"id_proyecto_{i}")
+                    proyecto = st.text_input("Proyecto", record['Proyecto'], key=f"proyecto_{i}")
+                    tecnico = st.text_input("Diseñador Técnico", record['Diseñador Técnico'], key=f"tecnico_{i}")
+                    componente = st.text_input("Nombre del Componente", record['Nombre del Componente'], key=f"componente_{i}")
+                    descripcion = st.text_area("Descripción Funcional", record['Descripción Funcional'], key=f"descripcion_{i}")
+                    req_tec = st.text_area("Requerimientos Técnicos", ",".join(record['Requerimientos Técnicos']), key=f"req_tec_{i}")
+                    criteria = st.text_area("Criterios de Decisión", ",".join(record['Criterios de Decisión']), key=f"criteria_{i}")
+                    alternativa = st.text_input("Alternativa seleccionada", record['Alternativa Seleccionada'], key=f"alternativa_{i}")
+                    justificacion = st.text_area("Justificación", record['Justificación'], key=f"justificacion_{i}")
+                    firmas = st.text_area("Firmas de Conformidad", "\n".join([f"{firma[0]},{firma[1]}" for firma in record['Firmas de Conformidad']]), key=f"firmas_{i}")
+                    save = st.form_submit_button("Guardar Cambios")
+                    if save:
+                        edit_record(i)
+                        st.success("Registro actualizado exitosamente")
+        with col2:
+            if st.button("Eliminar", key=f"delete_{i}"):
+                delete_record(i)
+                st.success("Registro eliminado exitosamente")
