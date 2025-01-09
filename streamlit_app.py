@@ -7,6 +7,9 @@ import uuid
 if "data" not in st.session_state:
     st.session_state["data"] = []
 
+if "req_tec_temp" not in st.session_state:
+    st.session_state["req_tec_temp"] = []
+
 # Función para agregar registro
 def add_record():
     record = {
@@ -18,13 +21,14 @@ def add_record():
         "Diseñador Técnico": tecnico,
         "Nombre del Componente": componente,
         "Descripción Funcional": descripcion,
-        "Requerimientos Técnicos": req_tec.split(";"),
+        "Requerimientos Técnicos": st.session_state["req_tec_temp"],
         "Criterios de Decisión": criterios.split(";"),
         "Alternativa Seleccionada": alternativa,
         "Justificación": justificacion,
         "Firmas de Conformidad": [tuple(firma.split(",")) for firma in firmas.split("\n") if firma]
     }
     st.session_state["data"].append(record)
+    st.session_state["req_tec_temp"] = []
 
 # Función para editar registro
 def edit_record(index):
@@ -37,7 +41,7 @@ def edit_record(index):
         "Diseñador Técnico": tecnico,
         "Nombre del Componente": componente,
         "Descripción Funcional": descripcion,
-        "Requerimientos Técnicos": req_tec.split(";"),
+        "Requerimientos Técnicos": st.session_state["req_tec_temp"],
         "Criterios de Decisión": criterios.split(";"),
         "Alternativa Seleccionada": alternativa,
         "Justificación": justificacion,
@@ -61,7 +65,31 @@ with st.form("form_proyecto"):
     componente = st.text_input("Nombre del Componente", key="componente")
     descripcion = st.text_area("Descripción Funcional", key="descripcion")
 
-    req_tec = st.text_area("Requerimientos Técnicos (separados por punto y coma)", key="req_tec")
+    # Lista dinámica de Requerimientos Técnicos
+    st.subheader("Requerimientos Técnicos")
+    new_req = st.text_input("Agregar Requerimiento Técnico", key="new_req")
+    if st.button("Agregar Requerimiento"):
+        if new_req:
+            st.session_state["req_tec_temp"].append(new_req)
+            st.success("Requerimiento agregado.")
+        else:
+            st.warning("El campo no puede estar vacío.")
+
+    for i, req in enumerate(st.session_state["req_tec_temp"]):
+        st.write(f"- {req}")
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Editar", key=f"edit_req_{i}"):
+                new_value = st.text_input("Editar Requerimiento", req, key=f"edit_input_{i}")
+                if st.button("Guardar Cambios", key=f"save_req_{i}"):
+                    st.session_state["req_tec_temp"][i] = new_value
+                    st.success("Requerimiento actualizado.")
+        with col2:
+            if st.button("Eliminar", key=f"delete_req_{i}"):
+                st.session_state["req_tec_temp"].pop(i)
+                st.success("Requerimiento eliminado.")
+                break
+
     criterios = st.text_area("Criterios de Decisión (separados por punto y coma)", key="criterios")
     alternativa = st.text_input("Alternativa Seleccionada", key="alternativa")
     justificacion = st.text_area("Justificación", key="justificacion")
@@ -85,7 +113,9 @@ if st.session_state["data"]:
             st.write(f"**Diseñador Técnico:** {record['Diseñador Técnico']}")
             st.write(f"**Nombre del Componente:** {record['Nombre del Componente']}")
             st.write(f"**Descripción Funcional:** {record['Descripción Funcional']}")
-            st.write(f"**Requerimientos Técnicos:** {', '.join(record['Requerimientos Técnicos'])}")
+            st.write("**Requerimientos Técnicos:**")
+            for req in record['Requerimientos Técnicos']:
+                st.write(f"- {req}")
             st.write(f"**Criterios de Decisión:** {', '.join(record['Criterios de Decisión'])}")
             st.write(f"**Alternativa Seleccionada:** {record['Alternativa Seleccionada']}")
             st.write(f"**Justificación:** {record['Justificación']}")
@@ -104,7 +134,9 @@ if st.session_state["data"]:
                         tecnico = st.text_input("Diseñador Técnico", record['Diseñador Técnico'])
                         componente = st.text_input("Nombre del Componente", record['Nombre del Componente'])
                         descripcion = st.text_area("Descripción Funcional", record['Descripción Funcional'])
-                        req_tec = st.text_area("Requerimientos Técnicos (separados por punto y coma)", ";".join(record['Requerimientos Técnicos']))
+
+                        req_tec = st.session_state["req_tec_temp"] = record['Requerimientos Técnicos']
+
                         criterios = st.text_area("Criterios de Decisión (separados por punto y coma)", ";".join(record['Criterios de Decisión']))
                         alternativa = st.text_input("Alternativa Seleccionada", record['Alternativa Seleccionada'])
                         justificacion = st.text_area("Justificación", record['Justificación'])
