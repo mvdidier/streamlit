@@ -52,6 +52,31 @@ def edit_record(index):
 def delete_record(index):
     st.session_state["data"].pop(index)
 
+# Función para gestionar la lista dinámica de Requerimientos Técnicos
+def manage_requirements():
+    st.subheader("Requerimientos Técnicos")
+    new_req = st.text_input("Nuevo Requerimiento Técnico", key="new_req")
+    if st.button("Agregar Requerimiento"):
+        if new_req:
+            st.session_state["req_tec_temp"].append(new_req)
+            st.success("Requerimiento agregado.")
+        else:
+            st.warning("El campo no puede estar vacío.")
+
+    for i, req in enumerate(st.session_state["req_tec_temp"]):
+        col1, col2, col3 = st.columns([6, 1, 1])
+        with col1:
+            st.text(req)
+        with col2:
+            if st.button("Editar", key=f"edit_req_{i}"):
+                st.session_state["req_tec_temp"][i] = st.text_input("Editar Requerimiento", req, key=f"edit_input_{i}")
+                st.success("Requerimiento actualizado.")
+        with col3:
+            if st.button("Eliminar", key=f"delete_req_{i}"):
+                st.session_state["req_tec_temp"].pop(i)
+                st.success("Requerimiento eliminado.")
+                break
+
 # Encabezado
 st.title("Gestión de Proyectos")
 
@@ -65,31 +90,8 @@ with st.form("form_proyecto"):
     componente = st.text_input("Nombre del Componente", key="componente")
     descripcion = st.text_area("Descripción Funcional", key="descripcion")
 
-    # Lista dinámica de Requerimientos Técnicos
-    st.subheader("Requerimientos Técnicos")
-    new_req = st.text_input("Agregar Requerimiento Técnico", key="new_req")
-    add_req = st.form_submit_button("Agregar Requerimiento")
-    if add_req:
-        if new_req:
-            st.session_state["req_tec_temp"].append(new_req)
-            st.success("Requerimiento agregado.")
-        else:
-            st.warning("El campo no puede estar vacío.")
-
-    for i, req in enumerate(st.session_state["req_tec_temp"]):
-        st.write(f"- {req}")
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button(f"Editar {i}", key=f"edit_req_{i}"):
-                new_value = st.text_input(f"Editar Requerimiento {i}", req, key=f"edit_input_{i}")
-                if st.button(f"Guardar Cambios {i}", key=f"save_req_{i}"):
-                    st.session_state["req_tec_temp"][i] = new_value
-                    st.success("Requerimiento actualizado.")
-        with col2:
-            if st.button(f"Eliminar {i}", key=f"delete_req_{i}"):
-                st.session_state["req_tec_temp"].pop(i)
-                st.success("Requerimiento eliminado.")
-                break
+    # Manejo de la lista dinámica de Requerimientos Técnicos
+    manage_requirements()
 
     criterios = st.text_area("Criterios de Decisión (separados por punto y coma)", key="criterios")
     alternativa = st.text_input("Alternativa Seleccionada", key="alternativa")
