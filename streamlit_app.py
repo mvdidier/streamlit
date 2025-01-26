@@ -1,150 +1,134 @@
 import streamlit as st
-import pandas as pd
-import datetime
-import uuid
+import sqlite3
 
-# Inicializar los datos en la sesión
-if "data" not in st.session_state:
-    st.session_state["data"] = []
+def create_table():
+    conn = sqlite3.connect('survey.db')
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS survey (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT,
+                        email TEXT,
+                        phone TEXT,
+                        age TEXT,
+                        gender TEXT,
+                        education TEXT,
+                        occupation TEXT,
+                        household_size INTEGER,
+                        speaks_indigenous_language TEXT,
+                        language TEXT,
+                        agriculture_main_income TEXT,
+                        income_percentage TEXT,
+                        crops TEXT,
+                        crop_area TEXT,
+                        production_volume TEXT,
+                        production_value TEXT,
+                        waste_percentage TEXT,
+                        has_fruit_trees TEXT,
+                        fruit_trees TEXT,
+                        consume_fruits TEXT,
+                        consume_method TEXT,
+                        unused_fruits TEXT,
+                        tree_age TEXT,
+                        planted_trees TEXT,
+                        other_fruits_consumed TEXT,
+                        other_fruits_source TEXT,
+                        childhood_fruits TEXT,
+                        childhood_fruit_sources TEXT,
+                        consume_childhood_fruits TEXT,
+                        reasons_not_consuming TEXT,
+                        reasons_fruits_not_known TEXT,
+                        knows_endangered_fruits TEXT,
+                        endangered_fruits TEXT,
+                        rescue_strategies TEXT,
+                        community_needs TEXT
+                    )''')
+    conn.commit()
+    conn.close()
 
-if "req_tec_temp" not in st.session_state:
-    st.session_state["req_tec_temp"] = []
+def insert_data(data):
+    conn = sqlite3.connect('survey.db')
+    cursor = conn.cursor()
+    cursor.execute('''INSERT INTO survey (
+                        name, email, phone, age, gender, education, occupation, household_size,
+                        speaks_indigenous_language, language, agriculture_main_income,
+                        income_percentage, crops, crop_area, production_volume, production_value,
+                        waste_percentage, has_fruit_trees, fruit_trees, consume_fruits,
+                        consume_method, unused_fruits, tree_age, planted_trees, other_fruits_consumed,
+                        other_fruits_source, childhood_fruits, childhood_fruit_sources,
+                        consume_childhood_fruits, reasons_not_consuming, reasons_fruits_not_known,
+                        knows_endangered_fruits, endangered_fruits, rescue_strategies,
+                        community_needs
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', data)
+    conn.commit()
+    conn.close()
 
-# Función para agregar registro
-def add_record():
-    record = {
-        "Folio": str(uuid.uuid4())[:8],
-        "Impacto en el Proyecto": impacto,
-        "Fecha": fecha.strftime("%d/%m/%Y"),
-        "ID Proyecto": id_proyecto,
-        "Proyecto": proyecto,
-        "Diseñador Técnico": tecnico,
-        "Nombre del Componente": componente,
-        "Descripción Funcional": descripcion,
-        "Requerimientos Técnicos": st.session_state["req_tec_temp"],
-        "Criterios de Decisión": criterios.split(";"),
-        "Alternativa Seleccionada": alternativa,
-        "Justificación": justificacion,
-        "Firmas de Conformidad": [tuple(firma.split(",")) for firma in firmas.split("\n") if firma]
-    }
-    st.session_state["data"].append(record)
-    st.session_state["req_tec_temp"] = []
+def main():
+    st.title("Encuesta: Conocimiento de Frutos Subutilizados de la Región")
+    st.write("Este cuestionario es para fines académicos y la información será tratada de forma confidencial.")
 
-# Función para editar registro
-def edit_record(index):
-    st.session_state["data"][index] = {
-        "Folio": st.session_state["data"][index]["Folio"],
-        "Impacto en el Proyecto": impacto,
-        "Fecha": fecha.strftime("%d/%m/%Y"),
-        "ID Proyecto": id_proyecto,
-        "Proyecto": proyecto,
-        "Diseñador Técnico": tecnico,
-        "Nombre del Componente": componente,
-        "Descripción Funcional": descripcion,
-        "Requerimientos Técnicos": st.session_state["req_tec_temp"],
-        "Criterios de Decisión": criterios.split(";"),
-        "Alternativa Seleccionada": alternativa,
-        "Justificación": justificacion,
-        "Firmas de Conformidad": [tuple(firma.split(",")) for firma in firmas.split("\n") if firma]
-    }
+    create_table()
 
-# Función para eliminar registro
-def delete_record(index):
-    st.session_state["data"].pop(index)
+    # Captura de datos
+    name = st.text_input("Nombre del entrevistado")
+    email = st.text_input("Correo electrónico")
+    phone = st.text_input("Teléfono")
+    age = st.text_input("Edad (quinquenal como en INEGI)")
+    gender = st.selectbox("Género", ["", "Femenino", "Masculino"])
+    education = st.selectbox("Escolaridad", ["", "Sin escolaridad", "Primaria", "Secundaria", "Bachillerato", "Universidad", "Posgrado"])
+    occupation = st.text_area("Ocupación (señalar sus diversas ocupaciones por orden de importancia)")
+    household_size = st.number_input("Número de personas que viven en su vivienda", min_value=1, step=1)
+    speaks_indigenous_language = st.radio("¿En su hogar, hablan alguna lengua indígena?", ["Si", "No"])
+    language = "" if speaks_indigenous_language == "No" else st.text_input("¿Cuál lengua indígena?")
 
-# Encabezado
-st.title("Gestión de Proyectos")
+    agriculture_main_income = st.radio("¿La actividad agrícola es su principal fuente de ingresos?", ["Si", "No"])
+    income_percentage = st.selectbox("¿Qué porcentaje de los ingresos familiares derivan de esta actividad?", ["", "20%", "30%", "40%", "50%", "Más del 50%"])
 
-# Formulario para ingresar datos
-with st.form("form_proyecto"):
-    impacto = st.selectbox("Impacto en el Proyecto", ["Alto", "Medio", "Bajo"], key="impacto")
-    fecha = st.date_input("Fecha", datetime.date.today(), key="fecha")
-    id_proyecto = st.text_input("ID Proyecto", key="id_proyecto")
-    proyecto = st.text_input("Proyecto", key="proyecto")
-    tecnico = st.text_input("Diseñador Técnico", key="tecnico")
-    componente = st.text_input("Nombre del Componente", key="componente")
-    descripcion = st.text_area("Descripción Funcional", key="descripcion")
+    crops = st.text_area("¿Cuáles son los cultivos que produce? (ejemplo: naranja, cítricos, granos)")
+    crop_area = st.text_input("Extensión de tierra (Hectáreas)")
+    production_volume = st.text_input("Volumen de producción (Ton, Kg)")
+    production_value = st.text_input("Valor de la producción")
+    waste_percentage = st.text_input("¿Cuánto de esta producción se convierte en residuos (%)?")
 
-    # Manejo de la lista dinámica de Requerimientos Técnicos
-    st.subheader("Requerimientos Técnicos")
-    new_req = st.text_input("Nuevo Requerimiento Técnico", key="new_req")
-    add_req = st.form_submit_button("Agregar Requerimiento")
-    if add_req:
-        if new_req:
-            st.session_state["req_tec_temp"].append(new_req)
-            st.success("Requerimiento agregado.")
-        else:
-            st.warning("El campo no puede estar vacío.")
+    has_fruit_trees = st.radio("¿Cuenta con árboles frutales en su vivienda?", ["Si", "No"])
+    fruit_trees = "" if has_fruit_trees == "No" else st.text_area("¿Cuáles árboles frutales tiene?")
 
-    if st.session_state["req_tec_temp"]:
-        st.write("**Lista de Requerimientos Técnicos:**")
-        for i, req in enumerate(st.session_state["req_tec_temp"]):
-            col1, col2 = st.columns([8, 2])
-            with col1:
-                st.text(req)
-            with col2:
-                if st.form_submit_button(f"Eliminar {i}"):
-                    st.session_state["req_tec_temp"].pop(i)
-                    st.success("Requerimiento eliminado.")
+    consume_fruits = "" if has_fruit_trees == "No" else st.radio("¿Consume estos frutos?", ["Si", "No"])
+    consume_method = "" if consume_fruits == "No" else st.text_area("¿Cómo los consume? (ejemplo: frescos, en conserva, en preparaciones tradicionales)")
+    unused_fruits = "" if consume_fruits == "Si" else st.text_area("¿Qué sucede con los frutos que no consume?")
 
-    criterios = st.text_area("Criterios de Decisión (separados por punto y coma)", key="criterios")
-    alternativa = st.text_input("Alternativa Seleccionada", key="alternativa")
-    justificacion = st.text_area("Justificación", key="justificacion")
+    tree_age = st.selectbox("Aproximadamente cuánto tiempo tienen la mayor parte de los árboles frutales en su vivienda", ["", "1-10 años", "10-20 años", "Más de 20 años"])
+    planted_trees = st.radio("¿Usted sembró estos árboles frutales?", ["Si, todos", "Si, una parte de ellos", "No"])
 
-    firmas = st.text_area("Firmas de Conformidad (Nombre,Puesto separados por línea)", key="firmas")
+    other_fruits_consumed = st.text_area("¿Qué otros frutos consume que no se encuentren en los árboles frutales de su vivienda?")
+    other_fruits_source = st.text_area("¿Cómo obtiene esos frutos que consume y no produce en su vivienda?")
 
-    guardar = st.form_submit_button("Guardar Registro")
+    childhood_fruits = st.text_area("¿Qué frutos consumía en la infancia?")
+    childhood_fruit_sources = st.text_area("¿Cómo obtenía su familia esos frutos que consumía en su infancia?")
 
-if guardar:
-    add_record()
-    st.success("Registro guardado exitosamente.")
+    consume_childhood_fruits = st.radio("¿Actualmente consume todos los frutos que consumía en su infancia?", ["Si", "No"])
+    reasons_not_consuming = "" if consume_childhood_fruits == "Si" else st.text_area("¿Cuáles son las razones por las que no consume los mismos frutos de su infancia?")
+    reasons_fruits_not_known = st.text_area("Razones por las que algunos frutos de la región ya no se conocen y no se consumen")
 
-# Mostrar registros existentes
-st.subheader("Registros Guardados")
-if st.session_state["data"]:
-    for i, record in enumerate(st.session_state["data"]):
-        with st.expander(f"Folio: {record['Folio']} - Proyecto: {record['Proyecto']}"):
-            st.write(f"**Impacto:** {record['Impacto en el Proyecto']}")
-            st.write(f"**Fecha:** {record['Fecha']}")
-            st.write(f"**ID Proyecto:** {record['ID Proyecto']}")
-            st.write(f"**Diseñador Técnico:** {record['Diseñador Técnico']}")
-            st.write(f"**Nombre del Componente:** {record['Nombre del Componente']}")
-            st.write(f"**Descripción Funcional:** {record['Descripción Funcional']}")
-            st.write("**Requerimientos Técnicos:**")
-            for req in record['Requerimientos Técnicos']:
-                st.write(f"- {req}")
-            st.write(f"**Criterios de Decisión:** {', '.join(record['Criterios de Decisión'])}")
-            st.write(f"**Alternativa Seleccionada:** {record['Alternativa Seleccionada']}")
-            st.write(f"**Justificación:** {record['Justificación']}")
-            st.write("**Firmas de Conformidad:**")
-            for firma in record['Firmas de Conformidad']:
-                st.write(f"- Nombre: {firma[0]}, Puesto: {firma[1]}")
+    knows_endangered_fruits = st.radio("¿Sabía que existen frutos considerados como subutilizados y en peligro de extinción en la Península de Yucatán?", ["Si", "No"])
+    endangered_fruits = "" if knows_endangered_fruits == "No" else st.text_area("¿Cuáles considera que son esos frutos subutilizados y en peligro de extinción?")
 
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("Editar", key=f"edit_{i}"):
-                    with st.form(f"edit_form_{i}"):
-                        impacto = st.selectbox("Impacto en el Proyecto", ["Alto", "Medio", "Bajo"], index=["Alto", "Medio", "Bajo"].index(record['Impacto en el Proyecto']))
-                        fecha = st.date_input("Fecha", datetime.datetime.strptime(record['Fecha'], "%d/%m/%Y").date())
-                        id_proyecto = st.text_input("ID Proyecto", record['ID Proyecto'])
-                        proyecto = st.text_input("Proyecto", record['Proyecto'])
-                        tecnico = st.text_input("Diseñador Técnico", record['Diseñador Técnico'])
-                        componente = st.text_input("Nombre del Componente", record['Nombre del Componente'])
-                        descripcion = st.text_area("Descripción Funcional", record['Descripción Funcional'])
+    rescue_strategies = st.text_area("¿Qué estrategias podría proponer para el rescate de estos frutos subutilizados y en peligro de extinción?")
+    community_needs = st.text_area("Menciona algunas necesidades de la comunidad que requieren pronta atención")
 
-                        req_tec = st.session_state["req_tec_temp"] = record['Requerimientos Técnicos']
+    # Guardar datos
+    if st.button("Guardar Respuesta"):
+        data = (name, email, phone, age, gender, education, occupation, household_size,
+                speaks_indigenous_language, language, agriculture_main_income, income_percentage,
+                crops, crop_area, production_volume, production_value, waste_percentage,
+                has_fruit_trees, fruit_trees, consume_fruits, consume_method, unused_fruits,
+                tree_age, planted_trees, other_fruits_consumed, other_fruits_source, childhood_fruits,
+                childhood_fruit_sources, consume_childhood_fruits, reasons_not_consuming,
+                reasons_fruits_not_known, knows_endangered_fruits, endangered_fruits,
+                rescue_strategies, community_needs)
 
-                        criterios = st.text_area("Criterios de Decisión (separados por punto y coma)", ";".join(record['Criterios de Decisión']))
-                        alternativa = st.text_input("Alternativa Seleccionada", record['Alternativa Seleccionada'])
-                        justificacion = st.text_area("Justificación", record['Justificación'])
-                        firmas = st.text_area("Firmas de Conformidad (Nombre,Puesto separados por línea)", "\n".join([f"{firma[0]},{firma[1]}" for firma in record['Firmas de Conformidad']]))
-                        guardar_cambios = st.form_submit_button("Guardar Cambios")
-                        if guardar_cambios:
-                            edit_record(i)
-                            st.success("Registro actualizado correctamente.")
-            with col2:
-                if st.button("Eliminar", key=f"delete_{i}"):
-                    delete_record(i)
-                    st.success("Registro eliminado correctamente.")
-else:
-    st.info("No hay registros guardados.")
+        insert_data(data)
+        st.success("¡Encuesta guardada exitosamente!")
+
+if __name__ == "__main__":
+    main()
