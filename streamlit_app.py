@@ -1,134 +1,281 @@
 import streamlit as st
-import sqlite3
+import json
+from copy import deepcopy
 
-def create_table():
-    conn = sqlite3.connect('survey.db')
-    cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS survey (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        name TEXT,
-                        email TEXT,
-                        phone TEXT,
-                        age TEXT,
-                        gender TEXT,
-                        education TEXT,
-                        occupation TEXT,
-                        household_size INTEGER,
-                        speaks_indigenous_language TEXT,
-                        language TEXT,
-                        agriculture_main_income TEXT,
-                        income_percentage TEXT,
-                        crops TEXT,
-                        crop_area TEXT,
-                        production_volume TEXT,
-                        production_value TEXT,
-                        waste_percentage TEXT,
-                        has_fruit_trees TEXT,
-                        fruit_trees TEXT,
-                        consume_fruits TEXT,
-                        consume_method TEXT,
-                        unused_fruits TEXT,
-                        tree_age TEXT,
-                        planted_trees TEXT,
-                        other_fruits_consumed TEXT,
-                        other_fruits_source TEXT,
-                        childhood_fruits TEXT,
-                        childhood_fruit_sources TEXT,
-                        consume_childhood_fruits TEXT,
-                        reasons_not_consuming TEXT,
-                        reasons_fruits_not_known TEXT,
-                        knows_endangered_fruits TEXT,
-                        endangered_fruits TEXT,
-                        rescue_strategies TEXT,
-                        community_needs TEXT
-                    )''')
-    conn.commit()
-    conn.close()
+# Estructura base del JSON (plantilla vacía)
+BASE_JSON = {
+   "Folio": "",
+   "Impacto en el Proyecto": "",
+   "Fecha": "",
+   "Id de Proyecto": 0,
+   "Componentes": [
+      {
+         "Nombre del Componente": "",
+         "Descripción Funcional": "",
+         "Diseñador Técnico": "",
+         "Requerimientos Técnicos": [
+            {"Requerimento": ""},
+            {"Requerimento": ""}
+         ],
+         "Criterios de Decisión": [
+            {"Criterio": ""},
+            {"Criterio": ""}
+         ],
+         "Comparativa": {
+            "OpcionesDeSolucion": {
+               "Crear": {
+                  "Descripcion": "",
+                  "DocumentacionYReferencias": "",
+                  "ViabilidadTecnica": {
+                     "Pregunta": "¿El equipo tiene la capacidad técnica para desarrollar el componente?",
+                     "Respuesta": ""
+                  },
+                  "ViabilidadEconomica": {
+                     "Pregunta": "Costos por desarrollo propio (Estimación de recursos necesarios) y análisis de retorno de inversión (ROI).",
+                     "Respuesta": ""
+                  },
+                  "ViabilidadOperacional": {
+                     "Pregunta": "¿Cómo afecta cada opción a la operación actual del sistema?",
+                     "Respuesta": ""
+                  },
+                  "RiesgosYMitigaciones": {
+                     "Pregunta": "Identifique riesgos y sus respectivas mitigaciones.",
+                     "Respuesta": ""
+                  },
+                  "Evaluacion": {
+                     "Pregunta": "Puntos fuertes y débiles de cada opción basados en criterios predefinidos.",
+                     "Respuesta": ""
+                  }
+               },
+               "Reusar": {
+                  "Descripcion": "",
+                  "DocumentacionYReferencias": "",
+                  "ViabilidadTecnica": {
+                     "Pregunta": "¿Los componentes existentes se pueden integrar fácilmente?",
+                     "Respuesta": ""
+                  },
+                  "ViabilidadEconomica": {
+                     "Pregunta": "Costos de reusar adaptando (Estimación de recursos necesarios) y análisis de retorno de inversión (ROI).",
+                     "Respuesta": ""
+                  },
+                  "ViabilidadOperacional": {
+                     "Pregunta": "¿Cómo afecta cada opción a la operación actual del sistema?",
+                     "Respuesta": ""
+                  },
+                  "RiesgosYMitigaciones": {
+                     "Pregunta": "Identifique riesgos y sus respectivas mitigaciones.",
+                     "Respuesta": ""
+                  },
+                  "Evaluacion": {
+                     "Pregunta": "Puntos fuertes y débiles de cada opción basados en criterios predefinidos.",
+                     "Respuesta": ""
+                  }
+               },
+               "Comprar": {
+                  "Descripcion": "",
+                  "DocumentacionYReferencias": "",
+                  "ViabilidadTecnica": {
+                     "Pregunta": "¿Los componentes existentes se pueden integrar fácilmente?",
+                     "Respuesta": ""
+                  },
+                  "ViabilidadEconomica": {
+                     "Pregunta": "Costos de compra y tipo de licencia (Estimación de recursos necesarios) y análisis de retorno de inversión (ROI).",
+                     "Respuesta": ""
+                  },
+                  "ViabilidadOperacional": {
+                     "Pregunta": "¿Cómo afecta cada opción a la operación actual del sistema?",
+                     "Respuesta": ""
+                  },
+                  "RiesgosYMitigaciones": {
+                     "Pregunta": "Identifique riesgos y sus respectivas mitigaciones.",
+                     "Respuesta": ""
+                  },
+                  "Evaluacion": {
+                     "Pregunta": "Puntos fuertes y débiles de cada opción basados en criterios predefinidos.",
+                     "Respuesta": ""
+                  }
+               }
+            }
+         },
+         "Alternativa seleccionada": "",
+         "Justificación": ""
+      }
+   ],
+   "Firmas": [
+      {
+         "Nombre": "",
+         "Puesto": ""
+      }
+   ]
+}
 
-def insert_data(data):
-    conn = sqlite3.connect('survey.db')
-    cursor = conn.cursor()
-    cursor.execute('''INSERT INTO survey (
-                        name, email, phone, age, gender, education, occupation, household_size,
-                        speaks_indigenous_language, language, agriculture_main_income,
-                        income_percentage, crops, crop_area, production_volume, production_value,
-                        waste_percentage, has_fruit_trees, fruit_trees, consume_fruits,
-                        consume_method, unused_fruits, tree_age, planted_trees, other_fruits_consumed,
-                        other_fruits_source, childhood_fruits, childhood_fruit_sources,
-                        consume_childhood_fruits, reasons_not_consuming, reasons_fruits_not_known,
-                        knows_endangered_fruits, endangered_fruits, rescue_strategies,
-                        community_needs
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', data)
-    conn.commit()
-    conn.close()
+# Simulación de un "almacén" en memoria (lista de proyectos).
+# En un escenario real, podrías guardar/consultar en una BD o servicio externo.
+db_proyectos = []
+
+def mostrar_proyectos_en_tabla():
+    """
+    Función auxiliar para mostrar todos los proyectos cargados
+    en una tabla en la interfaz.
+    """
+    if not db_proyectos:
+        st.warning("No hay proyectos registrados.")
+        return
+
+    # Para mostrar en tabla, convertimos a un formato plano (o mostrar en JSON).
+    for i, proyecto in enumerate(db_proyectos):
+        st.write(f"**Proyecto #{i+1}**")
+        st.json(proyecto)
+        st.write("---")
+
+def formulario_proyecto(proyecto):
+    """
+    Renderiza el formulario principal para un proyecto dado.
+    Retorna un diccionario con los datos actualizados.
+    """
+    st.subheader("Datos Generales")
+    proyecto["Folio"] = st.text_input("Folio", proyecto["Folio"])
+    proyecto["Impacto en el Proyecto"] = st.text_input("Impacto en el Proyecto", proyecto["Impacto en el Proyecto"])
+    proyecto["Fecha"] = st.text_input("Fecha", proyecto["Fecha"])
+    proyecto["Id de Proyecto"] = st.number_input("Id de Proyecto", value=proyecto["Id de Proyecto"], step=1)
+
+    # Por simplicidad, asumimos que solo hay un elemento en "Componentes"
+    # Si necesitas múltiples componentes, podrías hacer un bucle similar al de "Firmas".
+    componente = proyecto["Componentes"][0]
+
+    st.subheader("Componente")
+    componente["Nombre del Componente"] = st.text_input("Nombre del Componente", componente["Nombre del Componente"])
+    componente["Descripción Funcional"] = st.text_area("Descripción Funcional", componente["Descripción Funcional"])
+    componente["Diseñador Técnico"] = st.text_input("Diseñador Técnico", componente["Diseñador Técnico"])
+
+    # Requerimientos Técnicos
+    st.subheader("Requerimientos Técnicos")
+    for i, req in enumerate(componente["Requerimientos Técnicos"]):
+        req["Requerimento"] = st.text_input(f"Requerimiento #{i+1}", req["Requerimento"])
+
+    # Criterios de Decisión
+    st.subheader("Criterios de Decisión")
+    for i, criterio in enumerate(componente["Criterios de Decisión"]):
+        criterio["Criterio"] = st.text_input(f"Criterio #{i+1}", criterio["Criterio"])
+
+    # Comparativa
+    st.subheader("Comparativa de Opciones de Solución")
+    opciones_sol = componente["Comparativa"]["OpcionesDeSolucion"]
+
+    for opcion_key, opcion_val in opciones_sol.items():
+        st.markdown(f"### {opcion_key.capitalize()}")
+        opcion_val["Descripcion"] = st.text_input(f"Descripción ({opcion_key})", opcion_val["Descripcion"])
+        opcion_val["DocumentacionYReferencias"] = st.text_area(
+            f"Documentacion y Referencias ({opcion_key})",
+            opcion_val["DocumentacionYReferencias"]
+        )
+        with st.expander(f"Viabilidad Técnica ({opcion_key})"):
+            st.write(opcion_val["ViabilidadTecnica"]["Pregunta"])
+            opcion_val["ViabilidadTecnica"]["Respuesta"] = st.text_area(
+                f"Respuesta técnica ({opcion_key})",
+                opcion_val["ViabilidadTecnica"]["Respuesta"]
+            )
+        with st.expander(f"Viabilidad Económica ({opcion_key})"):
+            st.write(opcion_val["ViabilidadEconomica"]["Pregunta"])
+            opcion_val["ViabilidadEconomica"]["Respuesta"] = st.text_area(
+                f"Respuesta económica ({opcion_key})",
+                opcion_val["ViabilidadEconomica"]["Respuesta"]
+            )
+        with st.expander(f"Viabilidad Operacional ({opcion_key})"):
+            st.write(opcion_val["ViabilidadOperacional"]["Pregunta"])
+            opcion_val["ViabilidadOperacional"]["Respuesta"] = st.text_area(
+                f"Respuesta operacional ({opcion_key})",
+                opcion_val["ViabilidadOperacional"]["Respuesta"]
+            )
+        with st.expander(f"Riesgos y Mitigaciones ({opcion_key})"):
+            st.write(opcion_val["RiesgosYMitigaciones"]["Pregunta"])
+            opcion_val["RiesgosYMitigaciones"]["Respuesta"] = st.text_area(
+                f"Respuesta riesgos ({opcion_key})",
+                opcion_val["RiesgosYMitigaciones"]["Respuesta"]
+            )
+        with st.expander(f"Evaluación ({opcion_key})"):
+            st.write(opcion_val["Evaluacion"]["Pregunta"])
+            opcion_val["Evaluacion"]["Respuesta"] = st.text_area(
+                f"Respuesta evaluación ({opcion_key})",
+                opcion_val["Evaluacion"]["Respuesta"]
+            )
+
+    # Opción seleccionada
+    componente["Alternativa seleccionada"] = st.selectbox(
+        "Alternativa seleccionada",
+        ("Crear", "Reusar", "Comprar"),
+        index=["Crear", "Reusar", "Comprar"].index(componente["Alternativa seleccionada"])
+        if componente["Alternativa seleccionada"] in ["Crear", "Reusar", "Comprar"] else 0
+    )
+    componente["Justificación"] = st.text_area("Justificación", componente["Justificación"])
+
+    # Firmas
+    st.subheader("Firmas")
+    # Suponiendo que hay múltiples firmas, iteramos:
+    for i, firma in enumerate(proyecto["Firmas"]):
+        firma["Nombre"] = st.text_input(f"Nombre (Firma #{i+1})", firma["Nombre"])
+        firma["Puesto"] = st.text_input(f"Puesto (Firma #{i+1})", firma["Puesto"])
+
+    return proyecto
 
 def main():
-    st.title("Encuesta: Conocimiento de Frutos Subutilizados de la Región")
-    st.write("Este cuestionario es para fines académicos y la información será tratada de forma confidencial.")
+    st.title("Gestión de Proyectos (CRUD) con Streamlit")
 
-    create_table()
+    # Sección para mostrar los proyectos existentes
+    st.header("Lista de Proyectos Registrados")
+    mostrar_proyectos_en_tabla()
 
-    # Captura de datos
-    name = st.text_input("Nombre del entrevistado")
-    email = st.text_input("Correo electrónico")
-    phone = st.text_input("Teléfono")
-    age = st.text_input("Edad (quinquenal como en INEGI)")
-    gender = st.selectbox("Género", ["", "Femenino", "Masculino"])
-    education = st.selectbox("Escolaridad", ["", "Sin escolaridad", "Primaria", "Secundaria", "Bachillerato", "Universidad", "Posgrado"])
-    occupation = st.text_area("Ocupación (señalar sus diversas ocupaciones por orden de importancia)")
-    household_size = st.number_input("Número de personas que viven en su vivienda", min_value=1, step=1)
-    speaks_indigenous_language = st.radio("¿En su hogar, hablan alguna lengua indígena?", ["Si", "No"])
-    language = "" if speaks_indigenous_language == "No" else st.text_input("¿Cuál lengua indígena?")
+    st.header("Operaciones (Altas, Bajas, Cambios)")
 
-    agriculture_main_income = st.radio("¿La actividad agrícola es su principal fuente de ingresos?", ["Si", "No"])
-    income_percentage = st.selectbox("¿Qué porcentaje de los ingresos familiares derivan de esta actividad?", ["", "20%", "30%", "40%", "50%", "Más del 50%"])
+    # Opción para seleccionar la operación
+    operacion = st.selectbox("Selecciona una operación", ["Alta", "Cambio", "Baja"])
 
-    crops = st.text_area("¿Cuáles son los cultivos que produce? (ejemplo: naranja, cítricos, granos)")
-    crop_area = st.text_input("Extensión de tierra (Hectáreas)")
-    production_volume = st.text_input("Volumen de producción (Ton, Kg)")
-    production_value = st.text_input("Valor de la producción")
-    waste_percentage = st.text_input("¿Cuánto de esta producción se convierte en residuos (%)?")
+    if operacion == "Alta":
+        st.subheader("Crear un nuevo proyecto")
+        # Creamos una copia del JSON base para llenarlo
+        nuevo_proyecto = deepcopy(BASE_JSON)
+        nuevo_proyecto = formulario_proyecto(nuevo_proyecto)
 
-    has_fruit_trees = st.radio("¿Cuenta con árboles frutales en su vivienda?", ["Si", "No"])
-    fruit_trees = "" if has_fruit_trees == "No" else st.text_area("¿Cuáles árboles frutales tiene?")
+        if st.button("Guardar nuevo proyecto"):
+            # Simulamos guardar en base de datos
+            db_proyectos.append(nuevo_proyecto)
+            st.success("Proyecto creado exitosamente.")
 
-    consume_fruits = "" if has_fruit_trees == "No" else st.radio("¿Consume estos frutos?", ["Si", "No"])
-    consume_method = "" if consume_fruits == "No" else st.text_area("¿Cómo los consume? (ejemplo: frescos, en conserva, en preparaciones tradicionales)")
-    unused_fruits = "" if consume_fruits == "Si" else st.text_area("¿Qué sucede con los frutos que no consume?")
+    elif operacion == "Cambio":
+        st.subheader("Modificar un proyecto existente")
+        if not db_proyectos:
+            st.warning("No hay proyectos para modificar.")
+        else:
+            # Seleccionar índice de proyecto a modificar
+            indices = [f"Proyecto #{i+1}" for i in range(len(db_proyectos))]
+            seleccion = st.selectbox("Selecciona proyecto a modificar", indices)
+            idx = indices.index(seleccion)
 
-    tree_age = st.selectbox("Aproximadamente cuánto tiempo tienen la mayor parte de los árboles frutales en su vivienda", ["", "1-10 años", "10-20 años", "Más de 20 años"])
-    planted_trees = st.radio("¿Usted sembró estos árboles frutales?", ["Si, todos", "Si, una parte de ellos", "No"])
+            # Cargar el proyecto en el formulario
+            proyecto_seleccionado = db_proyectos[idx]
+            proyecto_actualizado = formulario_proyecto(deepcopy(proyecto_seleccionado))
 
-    other_fruits_consumed = st.text_area("¿Qué otros frutos consume que no se encuentren en los árboles frutales de su vivienda?")
-    other_fruits_source = st.text_area("¿Cómo obtiene esos frutos que consume y no produce en su vivienda?")
+            if st.button("Guardar cambios"):
+                db_proyectos[idx] = proyecto_actualizado
+                st.success("Proyecto modificado exitosamente.")
 
-    childhood_fruits = st.text_area("¿Qué frutos consumía en la infancia?")
-    childhood_fruit_sources = st.text_area("¿Cómo obtenía su familia esos frutos que consumía en su infancia?")
+    elif operacion == "Baja":
+        st.subheader("Eliminar un proyecto")
+        if not db_proyectos:
+            st.warning("No hay proyectos para eliminar.")
+        else:
+            indices = [f"Proyecto #{i+1}" for i in range(len(db_proyectos))]
+            seleccion = st.selectbox("Selecciona proyecto a eliminar", indices)
+            idx = indices.index(seleccion)
 
-    consume_childhood_fruits = st.radio("¿Actualmente consume todos los frutos que consumía en su infancia?", ["Si", "No"])
-    reasons_not_consuming = "" if consume_childhood_fruits == "Si" else st.text_area("¿Cuáles son las razones por las que no consume los mismos frutos de su infancia?")
-    reasons_fruits_not_known = st.text_area("Razones por las que algunos frutos de la región ya no se conocen y no se consumen")
+            if st.button("Eliminar proyecto"):
+                # Simulamos la eliminación
+                db_proyectos.pop(idx)
+                st.success("Proyecto eliminado exitosamente.")
 
-    knows_endangered_fruits = st.radio("¿Sabía que existen frutos considerados como subutilizados y en peligro de extinción en la Península de Yucatán?", ["Si", "No"])
-    endangered_fruits = "" if knows_endangered_fruits == "No" else st.text_area("¿Cuáles considera que son esos frutos subutilizados y en peligro de extinción?")
-
-    rescue_strategies = st.text_area("¿Qué estrategias podría proponer para el rescate de estos frutos subutilizados y en peligro de extinción?")
-    community_needs = st.text_area("Menciona algunas necesidades de la comunidad que requieren pronta atención")
-
-    # Guardar datos
-    if st.button("Guardar Respuesta"):
-        data = (name, email, phone, age, gender, education, occupation, household_size,
-                speaks_indigenous_language, language, agriculture_main_income, income_percentage,
-                crops, crop_area, production_volume, production_value, waste_percentage,
-                has_fruit_trees, fruit_trees, consume_fruits, consume_method, unused_fruits,
-                tree_age, planted_trees, other_fruits_consumed, other_fruits_source, childhood_fruits,
-                childhood_fruit_sources, consume_childhood_fruits, reasons_not_consuming,
-                reasons_fruits_not_known, knows_endangered_fruits, endangered_fruits,
-                rescue_strategies, community_needs)
-
-        insert_data(data)
-        st.success("¡Encuesta guardada exitosamente!")
+    st.write("---")
+    st.header("Visualización Final de la BD (JSON)")
+    st.json(db_proyectos)
 
 if __name__ == "__main__":
     main()
